@@ -24,14 +24,15 @@ export class ProductRepository {
 
         if (conditions.length > 0) {
             // @ts-ignore - Drizzle query builder types are complex
-            return query.where(and(...conditions)).all();
+            return await query.where(and(...conditions));
         }
 
-        return query.all();
+        return await query;
     }
 
     async findById(id: number) {
-        return db.select().from(products).where(eq(products.id, id)).get();
+        const result = await db.select().from(products).where(eq(products.id, id));
+        return result[0];
     }
 
     async create(product: NewProduct) {
@@ -45,12 +46,12 @@ export class ProductRepository {
     }
 
     async softDelete(id: number) {
-        return db.update(products)
+        return await db.update(products)
             .set({ deletedAt: new Date() })
             .where(eq(products.id, id));
     }
 
     async delete(id: number) {
-        return db.delete(products).where(eq(products.id, id));
+        return await db.delete(products).where(eq(products.id, id));
     }
 }

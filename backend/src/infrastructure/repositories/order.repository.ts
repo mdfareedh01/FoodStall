@@ -5,14 +5,15 @@ import type { Order, NewOrder, NewOrderItem } from '../../domain/entities.js';
 
 export class OrderRepository {
     async create(order: NewOrder, items: NewOrderItem[]) {
-        return db.transaction((tx: any) => {
-            const newOrder = tx.insert(orders).values(order).returning().get();
+        return db.transaction(async (tx: any) => {
+            const result = await tx.insert(orders).values(order).returning();
+            const newOrder = result[0];
 
             for (const item of items) {
-                tx.insert(orderItems).values({
+                await tx.insert(orderItems).values({
                     ...item,
                     orderId: newOrder.id
-                }).run();
+                });
             }
 
             return newOrder;
@@ -20,7 +21,7 @@ export class OrderRepository {
     }
 
     async findByUserId(userId: string) {
-        return db.select().from(orders).where(eq(orders.userId, userId)).all();
+        return await db.select().from(orders).where(eq(orders.userId, userId));
     }
 
     async findAllHydratedByUserId(userId: string) {
@@ -47,7 +48,8 @@ export class OrderRepository {
     }
 
     async findHydratedById(orderId: string) {
-        const order = await db.select().from(orders).where(eq(orders.id, orderId)).get();
+        const result = await db.select().from(orders).where(eq(orders.id, orderId));
+        const order = result[0];
         if (!order) return null;
 
         const items = await db.select({
@@ -84,15 +86,15 @@ export class OrderRepository {
     }
 
     async updateStatus(orderId: string, status: 'pending' | 'completed' | 'cancelled') {
-        const updatedOrder = db.update(orders)
+        const result = await db.update(orders)
             .set({ status })
             .where(eq(orders.id, orderId))
-            .returning()
-            .get();
+            .returning();
+        const updatedOrder = result[0];
         return this.findHydratedById(updatedOrder.id);
     }
 
     async getOrderItems(orderId: string) {
-        return db.select().from(orderItems).where(eq(orderItems.orderId, orderId)).all();
+        return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
     }
 }
