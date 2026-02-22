@@ -1,4 +1,3 @@
-import { handle } from 'hono/vercel'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { swaggerUI } from '@hono/swagger-ui'
 import { cors } from 'hono/cors'
@@ -51,10 +50,4 @@ app.onError((err, c) => {
   return c.json({ error: err.message || 'Internal Server Error' }, 500)
 })
 
-export const GET = handle(app)
-export const POST = handle(app)
-export const PATCH = handle(app)
-export const DELETE = handle(app)
-export const PUT = handle(app)
-
-export default handle(app)
+export default app
