@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/dev.ts",
-    "build": "tsc",
+    "build:local": "tsc",
     "start": "node dist/index.js",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
