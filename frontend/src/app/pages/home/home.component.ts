@@ -145,7 +145,7 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
                    <div class="p-2 bg-slate-100 rounded-xl">
                     <lucide-icon [img]="Utensils" class="h-6 w-6 text-slate-600"></lucide-icon>
                   </div>
-                  <h3 class="text-2xl font-black tracking-tight underline cursor-default decoration-slate-400 decoration-4 underline-offset-8 lowercase italic">explore our full menu</h3>
+                  <h3 class="text-2xl font-black tracking-tight underline cursor-default decoration-slate-400 decoration-4 underline-offset-8">Explore Our Full Menu</h3>
                 </div>
                  <app-product-grid 
                   [products]="filteredProducts()" 

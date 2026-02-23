@@ -73,7 +73,7 @@ import { RouterLink } from '@angular/router';
                 
                 <div class="space-y-1">
                    <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-                      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground lowercase italic leading-tight"> {{ product.title }}</h1>
+                      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground leading-tight"> {{ product.title }}</h1>
                       <div class="h-px flex-1 bg-border/10 mx-4 hidden sm:block"></div>
                       <span class="text-xl font-black text-primary tracking-tighter">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
                    </div>
