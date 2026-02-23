@@ -1,53 +1,60 @@
-import { OpenAPIHono } from '@hono/zod-openapi'
-import { swaggerUI } from '@hono/swagger-ui'
-import { cors } from 'hono/cors'
-import { productRoutes } from './presentation/routes/product.routes.js'
-import { authRoutes } from './presentation/routes/auth.routes.js'
-import { orderRoutes } from './presentation/routes/order.routes.js'
-import { adminRoutes } from './presentation/routes/admin.routes.js'
+import express from 'express';
+import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import { productRoutes } from './presentation/routes/product.routes.js';
+import { authRoutes } from './presentation/routes/auth.routes.js';
+import { orderRoutes } from './presentation/routes/order.routes.js';
+import { adminRoutes } from './presentation/routes/admin.routes.js';
 
-const app = new OpenAPIHono()
+const app = express();
 
-app.use('*', cors({
-  origin: (origin) => {
-    // In production, you'd put your vercel frontend URL here
-    // For now allowing all to facilitate deployment
-    return origin;
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'A to Z Foods API (Express)',
+      version: '1.0.0',
+      description: 'API for the A to Z Foods application',
+    },
+    servers: [{ url: '/api' }],
   },
-  credentials: true,
-}))
+  apis: ['./src/presentation/routes/*.ts'], // Path to the API docs
+};
 
-// Swagger UI
-app.get('/ui', swaggerUI({ url: '/doc' }))
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
-// OpenAPI Documentation
-app.doc('/doc', {
-  openapi: '3.0.0',
-  info: {
-    title: 'A to Z Foods API',
-    version: '1.0.0',
-    description: 'API for the A to Z Foods application'
-  }
-})
+// Middleware
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allowing all for now to facilitate deployment as per Hono logic
+    callback(null, true);
+  },
+  credentials: true
+}));
+app.use(express.json());
 
-app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
-  type: 'http',
-  scheme: 'bearer',
-  bearerFormat: 'JWT',
-})
+// Basic health check
+app.get('/', (req, res) => {
+  res.send('A to Z Foods API (Express) is Live 🚀');
+});
 
-app.get('/', (c) => {
-  return c.text('A to Z Foods API is Live 🚀')
-})
+// Swagger Documentation
+app.use('/ui', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/doc.json', (req, res) => {
+  res.json(swaggerSpec);
+});
 
-app.route('/api/products', productRoutes)
-app.route('/api/auth', authRoutes)
-app.route('/api/orders', orderRoutes)
-app.route('/api/admin', adminRoutes)
+// Routes
+app.use('/api/products', productRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/admin', adminRoutes);
 
-app.onError((err, c) => {
-  console.error(err)
-  return c.json({ error: err.message || 'Internal Server Error' }, 500)
-})
+// Error handling
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'Internal Server Error' });
+});
 
-export default app
+export default app;

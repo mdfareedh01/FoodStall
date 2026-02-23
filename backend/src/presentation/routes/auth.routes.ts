@@ -1,109 +1,50 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { AuthService } from '../../application/services/auth.service.js';
 import { UserRepository } from '../../infrastructure/repositories/user.repository.js';
+import { z } from 'zod';
+import { validate } from '../middlewares/validate.middleware.js';
 
 const userRepository = new UserRepository();
 const authService = new AuthService();
 
-export const authRoutes = new OpenAPIHono();
+export const authRoutes = express.Router();
 
 const otpSchema = z.object({
-    phone: z.string().min(10).openapi({ example: '1234567890' }),
-}).openapi('OtpRequest');
+    phone: z.string().min(10),
+});
 
 const verifySchema = z.object({
-    phone: z.string().min(10).openapi({ example: '1234567890' }),
-    otp: z.string().length(4).openapi({ example: '1234' }),
-}).openapi('VerifyRequest');
-
-const authResponseSchema = z.object({
-    token: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
-    user: z.object({
-        id: z.string(),
-        phone: z.string(),
-        role: z.string(),
-    }),
-}).openapi('AuthResponse');
-
-const sendOtpRoute = createRoute({
-    method: 'post',
-    path: '/otp',
-    request: {
-        body: {
-            content: {
-                'application/json': {
-                    schema: otpSchema,
-                },
-            },
-        },
-    },
-    responses: {
-        200: {
-            content: {
-                'application/json': {
-                    schema: z.object({ message: z.string().openapi({ example: 'OTP sent successfully' }) }),
-                },
-            },
-            description: 'OTP sent response',
-        },
-    },
+    phone: z.string().min(10),
+    otp: z.string().length(4),
 });
 
-const verifyOtpRoute = createRoute({
-    method: 'post',
-    path: '/verify',
-    request: {
-        body: {
-            content: {
-                'application/json': {
-                    schema: verifySchema,
-                },
-            },
-        },
-    },
-    responses: {
-        200: {
-            content: {
-                'application/json': {
-                    schema: authResponseSchema,
-                },
-            },
-            description: 'Auth successful',
-        },
-        401: {
-            content: {
-                'application/json': {
-                    schema: z.object({ error: z.string().openapi({ example: 'Invalid OTP' }) }),
-                },
-            },
-            description: 'Auth failed',
-        },
-    },
-});
-
-authRoutes.openapi(sendOtpRoute, async (c) => {
-    const { phone } = c.req.valid('json');
+authRoutes.post('/otp', validate({ body: otpSchema }), async (req, res) => {
+    const { phone } = req.body;
     console.log(`[MOCK] Sending OTP 1234 to ${phone}`);
-    return c.json({ message: 'OTP sent successfully' }, 200);
+    res.json({ message: 'OTP sent successfully' });
 });
 
-authRoutes.openapi(verifyOtpRoute, async (c) => {
-    const { phone, otp } = c.req.valid('json');
+authRoutes.post('/verify', validate({ body: verifySchema }), async (req, res) => {
+    try {
+        const { phone, otp } = req.body;
 
-    if (otp !== '1234') {
-        return c.json({ error: 'Invalid OTP' }, 401);
+        if (otp !== '1234') {
+            return res.status(401).json({ error: 'Invalid OTP' });
+        }
+
+        let user = await userRepository.findByPhone(phone);
+        if (!user) {
+            user = await userRepository.create({
+                id: randomUUID(),
+                phone,
+                role: phone === '1234567890' ? 'admin' : 'user'
+            });
+        }
+
+        const token = await authService.generateToken(user.id, user.role);
+        res.json({ token, user });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
     }
-
-    let user = await userRepository.findByPhone(phone);
-    if (!user) {
-        user = await userRepository.create({
-            id: randomUUID(),
-            phone,
-            role: phone === '1234567890' ? 'admin' : 'user' // Hardcoded admin for testing
-        });
-    }
-
-    const token = await authService.generateToken(user.id, user.role);
-    return c.json({ token, user }, 200);
 });

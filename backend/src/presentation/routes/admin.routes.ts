@@ -1,28 +1,28 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import express from 'express';
 import { ProductService } from '../../application/services/product.service.js';
 import { ProductRepository } from '../../infrastructure/repositories/product.repository.js';
-import { AuthService } from '../../application/services/auth.service.js';
 import { OrderRepository } from '../../infrastructure/repositories/order.repository.js';
+import { z } from 'zod';
+import { validate } from '../middlewares/validate.middleware.js';
 
 const productRepo = new ProductRepository();
 const orderRepo = new OrderRepository();
 const productService = new ProductService(productRepo);
-const authService = new AuthService();
 
-export const adminRoutes = new OpenAPIHono();
+export const adminRoutes = express.Router();
 
 const AdminProductSchema = z.object({
-    title: z.string().min(1).openapi({ example: 'New Food Item' }),
-    description: z.string().min(1).openapi({ example: 'Delicious new item' }),
-    price: z.number().positive().openapi({ example: 12.99 }),
-    image: z.string().url().openapi({ example: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c' }),
-    isVeg: z.boolean().openapi({ example: true }),
-    category: z.string().optional().openapi({ example: 'Lunch' }),
-    isSpecial: z.boolean().optional().openapi({ example: false }),
-    origin: z.enum(['Farm', 'Homemade', 'Standard']).optional().openapi({ example: 'Farm' }),
-    ingredients: z.array(z.string()).optional().openapi({ example: ['Fresh Tomato', 'Basil'] }),
-    tags: z.array(z.string()).optional().openapi({ example: ['New', 'Popular'] }),
-}).openapi('AdminProductRequest');
+    title: z.string().min(1),
+    description: z.string().min(1),
+    price: z.number().positive(),
+    image: z.string().url(),
+    isVeg: z.boolean(),
+    category: z.string().optional(),
+    isSpecial: z.boolean().optional(),
+    origin: z.enum(['Farm', 'Homemade', 'Standard']).optional(),
+    ingredients: z.array(z.string()).optional(),
+    tags: z.array(z.string()).optional(),
+});
 
 const mapProduct = (p: any) => {
     try {
@@ -37,176 +37,61 @@ const mapProduct = (p: any) => {
     }
 };
 
-// Admin Role Middleware (DISABLED FOR DEV)
-adminRoutes.use('*', async (c, next) => {
-    /* 
-    const authHeader = c.req.header('Authorization');
-    if (!authHeader) return c.json({ error: 'Unauthorized' }, 401);
-
-    const token = authHeader.split(' ')[1];
-    const payload = await authService.verifyToken(token);
-    if (!payload || payload.role !== 'admin') {
-        return c.json({ error: 'Forbidden: Admin access only' }, 403);
+adminRoutes.post('/products', validate({ body: AdminProductSchema }), async (req, res) => {
+    try {
+        const data = req.body;
+        const product = await productService.addProduct({
+            ...data,
+            ingredients: JSON.stringify(data.ingredients || []),
+            tags: JSON.stringify(data.tags || [])
+        });
+        res.status(201).json(mapProduct(product));
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
     }
-    */
-
-    await next();
 });
 
-const createProductRoute = createRoute({
-    method: 'post',
-    path: '/products',
-    security: [{ Bearer: [] }],
-    request: {
-        body: {
-            content: {
-                'application/json': {
-                    schema: AdminProductSchema,
-                },
-            },
-        },
-    },
-    responses: {
-        201: {
-            content: {
-                'application/json': {
-                    schema: z.object({ id: z.number() }).passthrough(),
-                },
-            },
-            description: 'Product created',
-        },
-    },
+adminRoutes.put('/products/:id', validate({ body: AdminProductSchema.partial() }), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const data = req.body;
+        const updateData: any = { ...data };
+        if (data.ingredients) updateData.ingredients = JSON.stringify(data.ingredients);
+        if (data.tags) updateData.tags = JSON.stringify(data.tags);
+
+        const product = await productService.updateProduct(id, updateData);
+        res.json(mapProduct(product));
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-const updateProductRoute = createRoute({
-    method: 'put',
-    path: '/products/{id}',
-    security: [{ Bearer: [] }],
-    request: {
-        params: z.object({
-            id: z.string().openapi({ example: '1' }),
-        }),
-        body: {
-            content: {
-                'application/json': {
-                    schema: AdminProductSchema.partial(),
-                },
-            },
-        },
-    },
-    responses: {
-        200: {
-            content: {
-                'application/json': {
-                    schema: z.object({ id: z.number() }).passthrough(),
-                },
-            },
-            description: 'Product updated',
-        },
-    },
+adminRoutes.delete('/products/:id', async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        await productService.removeProduct(id);
+        res.json({ message: 'Deleted successfully' });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-const deleteProductRoute = createRoute({
-    method: 'delete',
-    path: '/products/{id}',
-    security: [{ Bearer: [] }],
-    request: {
-        params: z.object({
-            id: z.string().openapi({ example: '1' }),
-        }),
-    },
-    responses: {
-        200: {
-            content: {
-                'application/json': {
-                    schema: z.object({ message: z.string().openapi({ example: 'Deleted successfully' }) }),
-                },
-            },
-            description: 'Product deleted',
-        },
-    },
+adminRoutes.get('/orders', async (req, res) => {
+    try {
+        const orders = await orderRepo.findAllHydrated();
+        res.json(orders);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-adminRoutes.openapi(createProductRoute, async (c) => {
-    const data = c.req.valid('json');
-    const product = await productService.addProduct({
-        ...data,
-        ingredients: JSON.stringify(data.ingredients || []),
-        tags: JSON.stringify(data.tags || [])
-    });
-    return c.json(mapProduct(product), 201);
-});
-
-adminRoutes.openapi(updateProductRoute, async (c) => {
-    const id = Number(c.req.param('id'));
-    const data = c.req.valid('json');
-
-    const updateData: any = { ...data };
-    if (data.ingredients) updateData.ingredients = JSON.stringify(data.ingredients);
-    if (data.tags) updateData.tags = JSON.stringify(data.tags);
-
-    const product = await productService.updateProduct(id, updateData);
-    return c.json(mapProduct(product), 200);
-});
-
-const getOrdersRoute = createRoute({
-    method: 'get',
-    path: '/orders',
-    responses: {
-        200: {
-            content: {
-                'application/json': {
-                    schema: z.array(z.any()),
-                },
-            },
-            description: 'List of all orders',
-        },
-    },
-});
-
-const updateOrderStatusRoute = createRoute({
-    method: 'patch',
-    path: '/orders/{id}/status',
-    request: {
-        params: z.object({
-            id: z.string().openapi({ example: 'ORD-1234' }),
-        }),
-        body: {
-            content: {
-                'application/json': {
-                    schema: z.object({
-                        status: z.enum(['pending', 'completed', 'cancelled']),
-                    }),
-                },
-            },
-        },
-    },
-    responses: {
-        200: {
-            description: 'Order status updated',
-            content: {
-                'application/json': {
-                    schema: z.any(),
-                },
-            },
-        },
-    },
-});
-
-adminRoutes.openapi(getOrdersRoute, async (c) => {
-    const orders = await orderRepo.findAllHydrated();
-    return c.json(orders, 200);
-});
-
-adminRoutes.openapi(updateOrderStatusRoute, async (c) => {
-    const id = c.req.param('id');
-    const { status } = c.req.valid('json');
-    const order = await orderRepo.updateStatus(id, status);
-    return c.json(order, 200);
-});
-
-adminRoutes.openapi(deleteProductRoute, async (c) => {
-    const id = Number(c.req.param('id'));
-    await productService.removeProduct(id);
-    return c.json({ message: 'Deleted successfully' }, 200);
+adminRoutes.patch('/orders/:id/status', validate({ body: z.object({ status: z.enum(['pending', 'completed', 'cancelled']) }) }), async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status } = req.body;
+        const order = await orderRepo.updateStatus(id, status);
+        res.json(order);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
 });
