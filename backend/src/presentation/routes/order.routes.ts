@@ -38,9 +38,23 @@ orderRoutes.get('/me', async (req, res) => {
         if (!phone) {
             return res.status(400).json({ error: 'Phone number is required' });
         }
-        const orders = await orderService.getUserOrders(phone);
+        const orders = await orderService.getOrdersByPhone(phone);
         res.json(orders);
     } catch (error: any) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+orderRoutes.patch('/:id/cancel', async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const phone = req.query.phone as string;
+        if (!phone) {
+            return res.status(400).json({ error: 'Phone number is required for verification' });
+        }
+        const order = await orderService.cancelOrder(orderId, phone);
+        res.json(order);
+    } catch (error: any) {
+        res.status(400).json({ error: error.message });
     }
 });

@@ -66,7 +66,7 @@ import { RouterLink } from '@angular/router';
                         }
                      </div>
                   }
-                  <span class="text-2xl font-bold text-primary">{{ product.price | currency }}</span>
+                  <span class="text-2xl font-bold text-primary">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
                 </div>
                 
                 <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">{{ product.title }}</h1>
@@ -95,7 +95,7 @@ import { RouterLink } from '@angular/router';
               <!-- Desktop Button -->
               <div class="hidden sm:block pt-6">
                 <button hlmBtn size="lg" class="w-full h-14 text-lg rounded-xl shadow-lg hover:shadow-primary/20 transition-all font-bold" (click)="addToCart(product)">
-                  Add to Cart - {{ product.price | currency }}
+                  Add to Cart - {{ product.price | currency:'INR':'symbol':'1.2-2' }}
                 </button>
               </div>
             </div>
@@ -105,7 +105,7 @@ import { RouterLink } from '@angular/router';
           <div class="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t z-50 sm:hidden">
              <button hlmBtn size="lg" class="w-full h-14 text-lg rounded-2xl shadow-xl font-extrabold flex items-center justify-between px-6" (click)="addToCart(product)">
                 <span>Add to Cart</span>
-                <span class="bg-primary-foreground/20 px-3 py-1 rounded-lg">{{ product.price | currency }}</span>
+                <span class="bg-primary-foreground/20 px-3 py-1 rounded-lg">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
              </button>
           </div>
         } @else {

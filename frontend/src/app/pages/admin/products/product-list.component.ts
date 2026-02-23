@@ -92,7 +92,7 @@ import { ConfirmationDialogComponent } from '../../../components/confirmation-di
                          <span class="text-[8px] font-black text-muted-foreground uppercase tracking-widest bg-muted/60 px-2 py-0.5 rounded-md">{{ product.category || 'General' }}</span>
                       </td>
                       <td class="px-5 py-2.5 text-center">
-                         <span class="font-black text-xs text-foreground">{{ product.price | currency }}</span>
+                         <span class="font-black text-xs text-foreground">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
                       </td>
                       <td class="px-5 py-2.5 text-center">
                          <div class="flex justify-center">

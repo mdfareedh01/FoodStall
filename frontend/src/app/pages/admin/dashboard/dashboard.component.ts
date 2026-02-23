@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HlmCardDirective, HlmCardHeaderDirective, HlmCardTitleDirective, HlmCardContentDirective } from '../../../ui/ui-card/ui-card.directive';
 import { HlmButtonDirective } from '../../../ui/ui-button/ui-button.directive';
-import { LucideAngularModule, LayoutDashboard, Package, ShoppingBag, CreditCard, ArrowUpRight, TrendingUp, Users, DollarSign, Lock } from 'lucide-angular';
+import { LucideAngularModule, LayoutDashboard, Package, ShoppingBag, CreditCard, ArrowUpRight, TrendingUp, Users, Banknote, Lock } from 'lucide-angular';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -28,10 +28,10 @@ import { RouterLink } from '@angular/router';
           <div hlmCard class="border-none shadow-sm hover:shadow-md transition-shadow bg-background">
             <div hlmCardHeader class="pb-2 flex flex-row items-center justify-between space-y-0">
               <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Revenue</p>
-              <lucide-icon [img]="DollarSign" class="h-4 w-4 text-primary"></lucide-icon>
+              <lucide-icon [img]="Banknote" class="h-4 w-4 text-primary"></lucide-icon>
             </div>
             <div hlmCardContent>
-              <div class="text-2xl font-black tracking-tight">$12,845</div>
+              <div class="text-2xl font-black tracking-tight">₹1,12,845</div>
               <p class="text-[10px] text-green-600 font-bold flex items-center gap-1 mt-1 bg-green-50 w-fit px-2 py-0.5 rounded-full">
                 <lucide-icon [img]="ArrowUpRight" class="h-3 w-3"></lucide-icon> +12.5%
               </p>
@@ -70,7 +70,7 @@ import { RouterLink } from '@angular/router';
               <lucide-icon [img]="TrendingUp" class="h-4 w-4 text-primary"></lucide-icon>
             </div>
             <div hlmCardContent>
-              <div class="text-2xl font-black tracking-tight">$83.40</div>
+              <div class="text-2xl font-black tracking-tight">₹834.00</div>
               <p class="text-[10px] text-muted-foreground font-medium mt-1">Consistent growth</p>
             </div>
           </div>
@@ -130,6 +130,6 @@ export class AdminDashboardComponent {
   readonly ArrowUpRight = ArrowUpRight;
   readonly TrendingUp = TrendingUp;
   readonly Users = Users;
-  readonly DollarSign = DollarSign;
+  readonly Banknote = Banknote;
   readonly Lock = Lock;
 }

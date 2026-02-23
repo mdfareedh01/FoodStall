@@ -48,7 +48,10 @@ import { LucideAngularModule, CreditCard, Banknote, Smartphone, Loader2, MapPin,
                   </div>
                   <div class="space-y-1.5">
                     <label class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number</label>
-                    <input hlmInput [ngModel]="phone()" (ngModelChange)="phone.set($event)" placeholder="98765 43210" class="w-full h-12 rounded-xl" />
+                    <input hlmInput [ngModel]="phone()" (ngModelChange)="phone.set($event)" placeholder="98765 43210" class="w-full h-12 rounded-xl" [class.border-destructive]="phoneError()" />
+                    @if (phone() && phoneError()) {
+                      <p class="text-[10px] text-destructive font-bold uppercase tracking-tight">{{ phoneError() }}</p>
+                    }
                   </div>
                 </div>
                 <div class="space-y-1.5">
@@ -131,9 +134,9 @@ import { LucideAngularModule, CreditCard, Banknote, Smartphone, Loader2, MapPin,
                     <div class="flex justify-between items-center text-sm">
                       <div class="flex flex-col">
                         <span class="font-medium line-clamp-1">{{ item.product.title }}</span>
-                        <span class="text-xs text-muted-foreground">{{ item.quantity }} × {{ item.product.price | currency }}</span>
+                        <span class="text-xs text-muted-foreground">{{ item.quantity }} × {{ item.product.price | currency:'INR':'symbol':'1.2-2' }}</span>
                       </div>
-                      <span class="font-bold">{{ item.product.price * item.quantity | currency }}</span>
+                      <span class="font-bold">{{ item.product.price * item.quantity | currency:'INR':'symbol':'1.2-2' }}</span>
                     </div>
                   }
                 </div>
@@ -143,17 +146,17 @@ import { LucideAngularModule, CreditCard, Banknote, Smartphone, Loader2, MapPin,
                 <div class="space-y-2">
                   <div class="flex justify-between text-sm">
                     <span class="text-muted-foreground">Subtotal</span>
-                    <span class="font-medium">{{ cartStore.total() | currency }}</span>
+                    <span class="font-medium">{{ cartStore.total() | currency:'INR':'symbol':'1.2-2' }}</span>
                   </div>
                   <div class="flex justify-between text-sm">
                     <span class="text-muted-foreground">Delivery Partner Fee</span>
                     <span class="text-green-600 font-bold uppercase text-[10px] bg-green-50 px-2 py-0.5 rounded">Free</span>
                   </div>
                 </div>
-
+ 
                 <div class="flex justify-between items-center text-xl font-black border-t pt-4 mt-4">
                   <span class="text-foreground">Total</span>
-                  <span class="text-primary">{{ cartStore.total() | currency }}</span>
+                  <span class="text-primary">{{ cartStore.total() | currency:'INR':'symbol':'1.2-2' }}</span>
                 </div>
               </div>
               <div hlmCardFooter class="pt-2">
@@ -196,7 +199,17 @@ export class CheckoutComponent implements OnInit {
   phone = signal(this.userStore.user()?.phoneNumber || '');
   street = signal('');
 
-  isFormValid = computed(() => !!(this.name() && this.phone() && this.street()));
+  isPhoneValid = computed(() => {
+    const p = this.phone().replace(/\s/g, '');
+    return /^[0-9]{10}$/.test(p);
+  });
+
+  phoneError = computed(() => {
+    if (!this.phone()) return null;
+    return this.isPhoneValid() ? null : 'Please enter a valid 10-digit number';
+  });
+
+  isFormValid = computed(() => !!(this.name() && this.isPhoneValid() && this.street()));
 
   ngOnInit() {
     console.log('[Checkout] Initializing. Cart items:', this.cartStore.items().length);

@@ -1,6 +1,6 @@
 import { db } from '../db/index.js';
 import { orders, orderItems, products } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import type { Order, NewOrder, NewOrderItem } from '../../domain/entities.js';
 
 export class OrderRepository {
@@ -21,11 +21,11 @@ export class OrderRepository {
     }
 
     async findByUserId(userId: string) {
-        return await db.select().from(orders).where(eq(orders.userId, userId));
+        return await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
     }
 
     async findAllHydratedByUserId(userId: string) {
-        const userOrders = await db.select().from(orders).where(eq(orders.userId, userId));
+        const userOrders = await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.createdAt));
 
         const hydratedOrders = [];
         for (const order of userOrders) {
@@ -66,7 +66,7 @@ export class OrderRepository {
     }
 
     async findAllHydrated() {
-        const allOrders = await db.select().from(orders);
+        const allOrders = await db.select().from(orders).orderBy(desc(orders.createdAt));
 
         const hydratedOrders = [];
         for (const order of allOrders) {
@@ -86,6 +86,19 @@ export class OrderRepository {
     }
 
     async updateStatus(orderId: string, status: 'pending' | 'completed' | 'cancelled') {
+        const currentOrder = await this.findHydratedById(orderId);
+        if (!currentOrder) throw new Error('Order not found');
+
+        // Robust State Machine:
+        // 1. Once 'completed' (delivered), cannot be changed.
+        // 2. Once 'cancelled', cannot be changed.
+        if (currentOrder.status === 'completed') {
+            throw new Error('Cannot change status of a delivered order');
+        }
+        if (currentOrder.status === 'cancelled') {
+            throw new Error('Cannot change status of a cancelled order');
+        }
+
         const result = await db.update(orders)
             .set({ status })
             .where(eq(orders.id, orderId))

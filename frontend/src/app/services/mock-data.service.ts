@@ -122,6 +122,13 @@ export class MockDataService {
         );
     }
 
+    cancelOrder(orderId: string, phone: string): Observable<Order> {
+        let params = new HttpParams().set('phone', phone);
+        return this.http.patch<any>(`${this.orderUrl}/${orderId}/cancel`, {}, { params }).pipe(
+            map(order => this.mapOrder(order))
+        );
+    }
+
     private mapOrder(raw: any): Order {
         return {
             ...raw,

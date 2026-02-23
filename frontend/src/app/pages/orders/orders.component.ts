@@ -50,11 +50,25 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
                   <p hlmCardTitle class="text-lg">Order #{{ order.id }}</p>
                   <p class="text-sm text-muted-foreground">{{ order.createdAt | date:'medium' }}</p>
                 </div>
-                <div class="text-right">
-                  <p class="text-lg font-bold">{{ order.total | currency }}</p>
-                  <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                    Delivered
-                  </span>
+                <div class="text-right flex flex-col items-end gap-2">
+                  <p class="text-lg font-bold">{{ order.total | currency:'INR':'symbol':'1.2-2' }}</p>
+                  <div class="flex flex-col items-end gap-2">
+                    <span 
+                      class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium uppercase tracking-wider"
+                      [ngClass]="{
+                        'bg-amber-100 text-amber-800': order.status === 'pending',
+                        'bg-green-100 text-green-800': order.status === 'completed',
+                        'bg-destructive/10 text-destructive': order.status === 'cancelled'
+                      }"
+                    >
+                      {{ order.status === 'pending' ? 'Initiated' : (order.status === 'completed' ? 'Delivered' : 'Cancelled') }}
+                    </span>
+                    @if (order.status === 'pending') {
+                      <button hlmBtn variant="ghost" size="sm" class="h-7 text-[10px] text-destructive hover:text-white hover:bg-destructive px-3 rounded-full border border-destructive/20 font-black uppercase tracking-widest transition-all" (click)="cancelOrder(order.id)">
+                        Cancel Order
+                      </button>
+                    }
+                  </div>
                 </div>
               </div>
               <div hlmCardContent class="pt-6">
@@ -65,10 +79,10 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
                         <img [src]="item.product.image" class="h-12 w-12 rounded object-cover" alt="" />
                         <div>
                           <p class="font-medium">{{ item.product.title }}</p>
-                          <p class="text-sm text-muted-foreground">Qty: {{ item.quantity }} × {{ item.product.price | currency }}</p>
+                          <p class="text-sm text-muted-foreground">Qty: {{ item.quantity }} × {{ item.product.price | currency:'INR':'symbol':'1.2-2' }}</p>
                         </div>
                       </div>
-                      <p class="font-medium">{{ (item.product.price * item.quantity) | currency }}</p>
+                      <p class="font-medium">{{ (item.product.price * item.quantity) | currency:'INR':'symbol':'1.2-2' }}</p>
                     </li>
                   }
                 </ul>
@@ -91,4 +105,10 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
 export class OrdersComponent {
   orderStore = inject(OrderStore);
   readonly Package = Package;
+
+  cancelOrder(orderId: string) {
+    if (confirm('Are you sure you want to cancel this order?')) {
+      this.orderStore.cancelOrder(orderId);
+    }
+  }
 }

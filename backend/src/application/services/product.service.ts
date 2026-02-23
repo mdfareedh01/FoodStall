@@ -23,4 +23,5 @@ export class ProductService {
     async removeProduct(id: number) {
         return this.productRepo.softDelete(id);
     }
+
 }

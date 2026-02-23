@@ -4,7 +4,7 @@ import { CartStore } from '../../store/cart.store';
 import { UserStore } from '../../store/user.store';
 import { HlmButtonDirective } from '../../ui/ui-button/ui-button.directive';
 import { HlmBadgeDirective } from '../../ui/ui-badge/ui-badge.directive';
-import { LucideAngularModule, ShoppingCart, User, Store, Package, LogOut, Menu, X } from 'lucide-angular';
+import { LucideAngularModule, ShoppingCart, User, Store, Package, LogOut, Menu, X, Settings } from 'lucide-angular';
 import { CommonModule } from '@angular/common';
 import { cartPop } from '../../animations';
 
@@ -37,7 +37,7 @@ import { cartPop } from '../../animations';
         </div>
 
         <div class="flex items-center gap-1 sm:gap-2">
-          <a routerLink="/cart" hlmBtn variant="ghost" size="icon" class="relative" (click)="isMenuOpen.set(false)">
+          <a routerLink="/cart" hlmBtn variant="ghost" size="icon" class="relative" (click)="isMenuOpen.set(false); isSettingsOpen.set(false)">
             <lucide-icon [img]="ShoppingCart" class="h-5 w-5"></lucide-icon>
             @if (cartStore.count() > 0) {
               <span 
@@ -50,33 +50,82 @@ import { cartPop } from '../../animations';
             }
           </a>
           
-          <div class="hidden sm:flex items-center gap-2">
-            @if (userStore.user()) {
-              <div class="flex items-center gap-2 pr-2 border-r mr-2">
-                <span class="text-xs font-medium text-muted-foreground">
-                  {{ userStore.user()?.phoneNumber }}
-                </span>
-                <button hlmBtn variant="ghost" size="icon" (click)="userStore.logout(); isMenuOpen.set(false)">
-                  <lucide-icon [img]="LogOut" class="h-4 w-4"></lucide-icon>
-                </button>
-              </div>
-            } @else {
-              <a routerLink="/login" hlmBtn variant="ghost" size="icon" (click)="isMenuOpen.set(false)">
-                <lucide-icon [img]="User" class="h-5 w-5"></lucide-icon>
-              </a>
-            }
+          <div class="flex items-center gap-1">
+            <!-- Settings Gear Button -->
+            <button 
+              hlmBtn variant="ghost" size="icon" 
+              class="relative"
+              (click)="isSettingsOpen.set(!isSettingsOpen())"
+            >
+              <lucide-icon [img]="Settings" class="h-5 w-5 transition-transform duration-500" [class.rotate-90]="isSettingsOpen()"></lucide-icon>
+            </button>
 
-            @if (userStore.user()?.role === 'ADMIN') {
-              <a routerLink="/admin" hlmBtn variant="outline" size="sm" class="hidden sm:flex">Admin</a>
+            <!-- Settings Dropdown -->
+            @if (isSettingsOpen()) {
+              <div class="absolute right-4 sm:right-8 top-14 w-64 bg-background/95 backdrop-blur-xl border rounded-lg shadow-2xl p-2 z-[70] animate-in fade-in zoom-in duration-200">
+                <!-- User Info -->
+                @if (userStore.user()) {
+                  <div class="px-3 py-3 border-b mb-1">
+                    <div class="flex items-center gap-3">
+                      <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <lucide-icon [img]="User" class="h-5 w-5 text-primary"></lucide-icon>
+                      </div>
+                      <div class="flex flex-col">
+                        <span class="text-xs text-muted-foreground uppercase tracking-wider font-bold">Account</span>
+                        <span class="text-sm font-medium truncate w-32">{{ userStore.user()?.phoneNumber }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- Links -->
+                <div class="space-y-1">
+                  @if (!userStore.user()) {
+                    <a routerLink="/login" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors" (click)="isSettingsOpen.set(false)">
+                      <lucide-icon [img]="User" class="h-4 w-4"></lucide-icon>
+                      Login / Join
+                    </a>
+                  }
+                  
+                  @if (userStore.user()?.role === 'ADMIN') {
+                    <a routerLink="/admin" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors text-primary font-medium" (click)="isSettingsOpen.set(false)">
+                      <lucide-icon [img]="Package" class="h-4 w-4"></lucide-icon>
+                      Admin Dashboard
+                    </a>
+                  }
+
+                  <div class="h-px bg-border my-1"></div>
+                  
+                  <a routerLink="/terms" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors" (click)="isSettingsOpen.set(false)">
+                    Terms & Conditions
+                  </a>
+                  <a routerLink="/privacy" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors" (click)="isSettingsOpen.set(false)">
+                    Privacy Policy
+                  </a>
+                  <a routerLink="/shipping" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors" (click)="isSettingsOpen.set(false)">
+                    Shipping Policy
+                  </a>
+                  <a routerLink="/cancellation" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors" (click)="isSettingsOpen.set(false)">
+                    Cancellation Policy
+                  </a>
+
+                  @if (userStore.user()) {
+                    <div class="h-px bg-border my-1"></div>
+                    <button 
+                      class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-destructive hover:bg-destructive/10 transition-colors" 
+                      (click)="userStore.logout(); isSettingsOpen.set(false)"
+                    >
+                      <lucide-icon [img]="LogOut" class="h-4 w-4"></lucide-icon>
+                      Sign Out
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <!-- Backdrop to close dropdown -->
+              <div class="fixed inset-0 z-[65]" (click)="isSettingsOpen.set(false)"></div>
             }
           </div>
-
-          <!-- Mobile User Icon (visible if logout) -->
-          @if (!userStore.user()) {
-            <a routerLink="/login" hlmBtn variant="ghost" size="icon" class="sm:hidden">
-              <lucide-icon [img]="User" class="h-5 w-5"></lucide-icon>
-            </a>
-          }
         </div>
       </div>
     </nav>
@@ -171,6 +220,7 @@ export class NavbarComponent {
   userStore = inject(UserStore);
 
   isMenuOpen = signal(false);
+  isSettingsOpen = signal(false);
 
   readonly ShoppingCart = ShoppingCart;
   readonly User = User;
@@ -179,4 +229,5 @@ export class NavbarComponent {
   readonly LogOut = LogOut;
   readonly MenuIcon = Menu;
   readonly XIcon = X;
+  readonly Settings = Settings;
 }

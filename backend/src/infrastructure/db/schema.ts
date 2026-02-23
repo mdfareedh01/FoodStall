@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, uniqueIndex, blob } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
     id: text('id').primaryKey(), // We'll use UUIDs or phone-based IDs
@@ -14,7 +14,7 @@ export const products = sqliteTable('products', {
     title: text('title').notNull().unique(),
     description: text('description').notNull(),
     price: real('price').notNull(),
-    image: text('image').notNull(),
+    image: text('image'),
     isVeg: integer('is_veg', { mode: 'boolean' }).notNull().default(true),
     category: text('category'),
     isSpecial: integer('is_special', { mode: 'boolean' }).notNull().default(false),

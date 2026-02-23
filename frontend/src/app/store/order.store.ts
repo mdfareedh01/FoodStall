@@ -79,6 +79,25 @@ export const OrderStore = signalStore(
                         tap({ error: (err) => patchState(store, { error: err.message, loading: false }) })
                     ))
                 )
+            ),
+            cancelOrder: rxMethod<string>(
+                pipe(
+                    tap(() => patchState(store, { loading: true })),
+                    switchMap((orderId) => {
+                        const phone = userStore.user()?.phoneNumber;
+                        if (!phone) {
+                            patchState(store, { error: 'Phone number required to cancel', loading: false });
+                            throw new Error('No phone found');
+                        }
+                        return apiService.cancelOrder(orderId, phone).pipe(
+                            tap((updatedOrder) => patchState(store, {
+                                orders: store.orders().map(o => o.id === updatedOrder.id ? updatedOrder : o),
+                                loading: false
+                            })),
+                            tap({ error: (err) => patchState(store, { error: err.message, loading: false }) })
+                        );
+                    })
+                )
             )
         };
     }),

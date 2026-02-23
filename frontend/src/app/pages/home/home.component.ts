@@ -38,7 +38,7 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
             </div>
             <div hlmCardContent class="space-y-4">
               <div class="flex items-center space-x-2">
-                <input type="checkbox" id="vegOnly" [(ngModel)]="isVegOnly" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                <input type="checkbox" id="vegOnly" [ngModel]="isVegOnly()" (ngModelChange)="isVegOnly.set($event)" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
                 <label for="vegOnly" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-100 flex items-center gap-2 cursor-pointer">
                   <span hlmBadge class="h-2 w-2 rounded-full bg-green-600 p-0 border-none"></span>
                   Vegetarian Only
@@ -139,16 +139,17 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
               </section>
               }
 
-              <!-- Full catalog title if searching or filtering -->
-              @if (isVegOnly()) {
-                <section class="space-y-6 pt-4 border-t">
-                   <h3 class="text-xl font-black tracking-tight">Full Catalog</h3>
-                   <app-product-grid 
-                    [products]="filteredProducts()" 
-                    (addToCart)="onAddToCart($event)"
-                  ></app-product-grid>
-                </section>
-              }
+              <!-- Explore Our Full Menu Section (Always Visible) -->
+              <section class="space-y-6 pt-12 border-t">
+                 <div class="flex items-center justify-between">
+                    <h3 class="text-2xl font-black tracking-tight text-foreground/80 lowercase">/ explore our full menu</h3>
+                    <div class="h-px flex-1 bg-border/40 mx-6 hidden sm:block"></div>
+                 </div>
+                 <app-product-grid 
+                  [products]="filteredProducts()" 
+                  (addToCart)="onAddToCart($event)"
+                ></app-product-grid>
+              </section>
             </div>
           }
         </main>

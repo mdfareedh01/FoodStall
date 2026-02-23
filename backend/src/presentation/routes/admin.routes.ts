@@ -11,17 +11,25 @@ const productService = new ProductService(productRepo);
 
 export const adminRoutes = express.Router();
 
+const BooleanCoerce = z.preprocess((val) => {
+    if (typeof val === 'string') {
+        if (val.toLowerCase() === 'true') return true;
+        if (val.toLowerCase() === 'false') return false;
+    }
+    return val;
+}, z.coerce.boolean());
+
 const AdminProductSchema = z.object({
     title: z.string().min(1),
     description: z.string().min(1),
-    price: z.number().positive(),
-    image: z.string().url(),
-    isVeg: z.boolean(),
+    price: z.coerce.number().positive(),
+    image: z.string().optional(),
+    isVeg: BooleanCoerce,
     category: z.string().optional(),
-    isSpecial: z.boolean().optional(),
-    origin: z.enum(['Farm', 'Homemade', 'Standard']).optional(),
-    ingredients: z.array(z.string()).optional(),
-    tags: z.array(z.string()).optional(),
+    isSpecial: BooleanCoerce.optional().default(false),
+    origin: z.enum(['Farm', 'Homemade', 'Standard']).optional().default('Standard'),
+    ingredients: z.array(z.string()).optional().default([]),
+    tags: z.array(z.string()).optional().default([]),
 });
 
 const mapProduct = (p: any) => {
@@ -40,11 +48,13 @@ const mapProduct = (p: any) => {
 adminRoutes.post('/products', validate({ body: AdminProductSchema }), async (req, res) => {
     try {
         const data = req.body;
-        const product = await productService.addProduct({
+        const productData: any = {
             ...data,
             ingredients: JSON.stringify(data.ingredients || []),
             tags: JSON.stringify(data.tags || [])
-        });
+        };
+
+        const product = await productService.addProduct(productData);
         res.status(201).json(mapProduct(product));
     } catch (error: any) {
         res.status(500).json({ error: error.message });
@@ -55,9 +65,10 @@ adminRoutes.put('/products/:id', validate({ body: AdminProductSchema.partial() }
     try {
         const id = Number(req.params.id);
         const data = req.body;
+
         const updateData: any = { ...data };
-        if (data.ingredients) updateData.ingredients = JSON.stringify(data.ingredients);
-        if (data.tags) updateData.tags = JSON.stringify(data.tags);
+        if (data.ingredients) updateData.ingredients = JSON.stringify(data.ingredients) as string;
+        if (data.tags) updateData.tags = JSON.stringify(data.tags) as string;
 
         const product = await productService.updateProduct(id, updateData);
         res.json(mapProduct(product));
@@ -87,8 +98,8 @@ adminRoutes.get('/orders', async (req, res) => {
 
 adminRoutes.patch('/orders/:id/status', validate({ body: z.object({ status: z.enum(['pending', 'completed', 'cancelled']) }) }), async (req, res) => {
     try {
-        const id = req.params.id;
-        const { status } = req.body;
+        const id = req.params.id as string;
+        const { status } = req.body as { status: 'pending' | 'completed' | 'cancelled' };
         const order = await orderRepo.updateStatus(id, status);
         res.json(order);
     } catch (error: any) {

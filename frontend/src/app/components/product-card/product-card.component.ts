@@ -93,7 +93,7 @@ import { slideUpAnimation } from '../../animations';
 
       <div hlmCardFooter class="p-3 sm:p-4 pt-2 sm:pt-3 mt-auto flex items-center justify-between border-t border-border/50 bg-muted/10">
         <span class="text-base sm:text-lg font-bold text-foreground">
-            {{ product.price | currency }}
+            {{ product.price | currency:'INR':'symbol':'1.2-2' }}
         </span>
         <button 
           hlmBtn variant="default" size="sm" 

@@ -44,21 +44,27 @@ export const ProductStore = signalStore(
             selectProduct(id: number | null) {
                 patchState(store, { selectedProductId: id });
             },
-            addProduct: rxMethod<Omit<Product, 'id'>>(
+            addProduct: rxMethod<{ product: Omit<Product, 'id'> }>(
                 pipe(
-                    switchMap((product) => productService.addProduct(product).pipe(
+                    tap(() => patchState(store, { loading: true, error: null })),
+                    switchMap(({ product }) => productService.addProduct(product).pipe(
                         tap((newProduct) => patchState(store, {
-                            products: [...store.products(), newProduct]
-                        }))
+                            products: [...store.products(), newProduct],
+                            loading: false
+                        })),
+                        tap({ error: (err) => patchState(store, { error: err.message || 'Failed to add product', loading: false }) })
                     ))
                 )
             ),
-            updateProduct: rxMethod<Product>(
+            updateProduct: rxMethod<{ product: Product }>(
                 pipe(
-                    switchMap((product) => productService.updateProduct(product.id, product).pipe(
+                    tap(() => patchState(store, { loading: true, error: null })),
+                    switchMap(({ product }) => productService.updateProduct(product.id, product).pipe(
                         tap((updated) => patchState(store, {
-                            products: store.products().map(p => p.id === updated.id ? updated : p)
-                        }))
+                            products: store.products().map(p => p.id === updated.id ? updated : p),
+                            loading: false
+                        })),
+                        tap({ error: (err) => patchState(store, { error: err.message || 'Failed to update product', loading: false }) })
                     ))
                 )
             ),

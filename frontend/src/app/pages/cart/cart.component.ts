@@ -35,7 +35,7 @@ import { EmptyStateComponent } from '../../components/empty-state/empty-state.co
                         <img [src]="item.product.image" class="h-12 w-12 rounded object-cover bg-muted" alt="" />
                         {{ item.product.title }}
                       </td>
-                      <td class="px-6 py-4">{{ item.product.price | currency }}</td>
+                      <td class="px-6 py-4">{{ item.product.price | currency:'INR':'symbol':'1.2-2' }}</td>
                       <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
                           <button hlmBtn variant="outline" size="icon" class="h-8 w-8" (click)="cartStore.updateQuantity(item.product.id, item.quantity - 1)">
@@ -48,7 +48,7 @@ import { EmptyStateComponent } from '../../components/empty-state/empty-state.co
                         </div>
                       </td>
                       <td class="px-6 py-4 font-bold">
-                        {{ item.product.price * item.quantity | currency }}
+                        {{ item.product.price * item.quantity | currency:'INR':'symbol':'1.2-2' }}
                       </td>
                       <td class="px-6 py-4 text-right">
                         <button hlmBtn variant="ghost" size="icon" class="text-destructive hover:text-destructive hover:bg-destructive/10" (click)="cartStore.removeFromCart(item.product.id)">
@@ -61,11 +61,11 @@ import { EmptyStateComponent } from '../../components/empty-state/empty-state.co
               </table>
             </div>
           </div>
-
+ 
           <div class="flex flex-col md:flex-row justify-end gap-6 items-start md:items-center">
              <div class="text-right space-y-1">
                 <p class="text-sm text-muted-foreground">Subtotal</p>
-                <p class="text-3xl font-bold">{{ cartStore.total() | currency }}</p>
+                <p class="text-3xl font-bold">{{ cartStore.total() | currency:'INR':'symbol':'1.2-2' }}</p>
              </div>
              <a routerLink="/checkout" hlmBtn size="lg" class="w-full md:w-auto">
                 Proceed to Checkout

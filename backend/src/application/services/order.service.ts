@@ -72,4 +72,20 @@ export class OrderService {
         if (!user) return [];
         return this.orderRepo.findAllHydratedByUserId(user.id);
     }
+
+    async cancelOrder(orderId: string, phone: string) {
+        const order = await this.orderRepo.findHydratedById(orderId);
+        if (!order) throw new Error('Order not found');
+
+        // Simple security check: phone must match
+        if (order.customerPhone !== phone) {
+            throw new Error('Not authorized to cancel this order');
+        }
+
+        if (order.status !== 'pending') {
+            throw new Error(`Cannot cancel order in ${order.status} status`);
+        }
+
+        return this.orderRepo.updateStatus(orderId, 'cancelled');
+    }
 }

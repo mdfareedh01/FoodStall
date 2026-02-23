@@ -1,27 +1,27 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrderStore } from '../../../store/order.store';
-import { LucideAngularModule, ShoppingBag, Clock, CheckCircle2, XCircle, Search, ChevronRight, Package, User, Phone, MapPin, ExternalLink, Filter } from 'lucide-angular';
+import { LucideAngularModule, ShoppingBag, Clock, CheckCircle2, XCircle, Search, ChevronRight, Package, User, Phone, MapPin, ExternalLink, Filter, SortAsc, ArrowUpWideNarrow, ArrowDownWideNarrow } from 'lucide-angular';
 import { HlmButtonDirective } from '../../../ui/ui-button/ui-button.directive';
 import { HlmCardDirective, HlmCardHeaderDirective, HlmCardTitleDirective, HlmCardContentDirective } from '../../../ui/ui-card/ui-card.directive';
 import { HlmInputDirective } from '../../../ui/ui-input/ui-input.directive';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-    selector: 'app-admin-orders',
-    standalone: true,
-    imports: [
-        CommonModule,
-        LucideAngularModule,
-        HlmButtonDirective,
-        HlmCardDirective,
-        HlmCardHeaderDirective,
-        HlmCardTitleDirective,
-        HlmCardContentDirective,
-        HlmInputDirective,
-        FormsModule
-    ],
-    template: `
+   selector: 'app-admin-orders',
+   standalone: true,
+   imports: [
+      CommonModule,
+      LucideAngularModule,
+      HlmButtonDirective,
+      HlmCardDirective,
+      HlmCardHeaderDirective,
+      HlmCardTitleDirective,
+      HlmCardContentDirective,
+      HlmInputDirective,
+      FormsModule
+   ],
+   template: `
     <div class="min-h-screen bg-muted/20 pb-12">
       <div class="container py-6 px-4 sm:px-8 max-w-7xl">
         <!-- Header Section -->
@@ -53,15 +53,49 @@ import { FormsModule } from '@angular/forms';
               </div>
               <input 
                 hlmInput 
-                [(ngModel)]="searchQuery"
+                [ngModel]="searchQuery()"
+                (ngModelChange)="searchQuery.set($event)"
                 placeholder="Search by ID, Customer Phone..." 
                 class="pl-11 w-full h-10 bg-muted/30 border-none rounded-xl focus:ring-1 ring-primary/20 placeholder:text-muted-foreground/30 font-bold text-xs"
               />
             </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+               <lucide-icon [img]="SortAsc" class="h-4 w-4 text-muted-foreground/40 ml-2"></lucide-icon>
+               
+               <!-- Custom Premium Dropdown -->
+               <div class="relative">
+                 <button 
+                  (click)="isSortDropdownOpen.set(!isSortDropdownOpen())"
+                  class="h-10 bg-muted/30 hover:bg-muted/50 transition-colors border-none rounded-xl px-4 flex items-center gap-3 font-black text-[9px] uppercase tracking-widest cursor-pointer"
+                 >
+                   <span>Sort by {{ sortBy() === 'createdAt' ? 'Date' : (sortBy() === 'total' ? 'Total' : 'Status') }}</span>
+                   <lucide-icon [img]="ChevronDown" class="h-3 w-3 opacity-30"></lucide-icon>
+                 </button>
+
+                 @if (isSortDropdownOpen()) {
+                   <div class="absolute left-0 top-12 w-48 bg-background border rounded-2xl shadow-2xl p-2 z-[60] animate-in fade-in zoom-in duration-200">
+                     <button (click)="sortBy.set('createdAt'); isSortDropdownOpen.set(false)" class="w-full text-left px-4 py-2.5 rounded-xl transition-colors hover:bg-muted font-black text-[9px] uppercase tracking-widest" [class.text-primary]="sortBy() === 'createdAt'">Sort by Date</button>
+                     <button (click)="sortBy.set('total'); isSortDropdownOpen.set(false)" class="w-full text-left px-4 py-2.5 rounded-xl transition-colors hover:bg-muted font-black text-[9px] uppercase tracking-widest" [class.text-primary]="sortBy() === 'total'">Sort by Total</button>
+                     <button (click)="sortBy.set('status'); isSortDropdownOpen.set(false)" class="w-full text-left px-4 py-2.5 rounded-xl transition-colors hover:bg-muted font-black text-[9px] uppercase tracking-widest" [class.text-primary]="sortBy() === 'status'">Sort by Status</button>
+                   </div>
+                   <!-- Backdrop -->
+                   <div class="fixed inset-0 z-[55]" (click)="isSortDropdownOpen.set(false)"></div>
+                 }
+               </div>
+
+               <button 
+                 hlmBtn variant="ghost" size="icon" 
+                 (click)="toggleSortOrder()"
+                 class="h-10 w-10 rounded-xl hover:bg-primary/5 text-primary"
+               >
+                 <lucide-icon [img]="sortOrder() === 'desc' ? ArrowDownWideNarrow : ArrowUpWideNarrow" class="h-4 w-4"></lucide-icon>
+               </button>
+            </div>
+            <div class="h-4 w-px bg-border/40 hidden sm:block mx-2"></div>
             <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
                <button *ngFor="let s of statusFilters" 
-                       (click)="selectedStatus = s"
-                       [class]="selectedStatus === s ? 'bg-primary text-primary-foreground' : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'"
+                       (click)="selectedStatus.set(s)"
+                       [class]="selectedStatus() === s ? 'bg-primary text-primary-foreground' : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'"
                        class="px-4 h-10 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all whitespace-nowrap">
                  {{ s }}
                </button>
@@ -77,7 +111,7 @@ import { FormsModule } from '@angular/forms';
                      [class.border-l-green-500]="order.status === 'completed'"
                      [class.border-l-red-500]="order.status === 'cancelled'"
                      class="border-none shadow-sm rounded-2xl bg-background overflow-hidden hover:shadow-md transition-all group cursor-pointer"
-                     (click)="selectedOrder = order">
+                     (click)="selectedOrderId.set(order.id)">
                    <div hlmCardContent class="p-0">
                       <div class="flex flex-col sm:flex-row sm:items-center">
                          <!-- Order Identity -->
@@ -101,13 +135,13 @@ import { FormsModule } from '@angular/forms';
                          <div class="p-5 flex items-center justify-between sm:w-64">
                             <div class="flex flex-col">
                                <p class="text-[9px] font-bold text-muted-foreground uppercase mb-1">Status</p>
-                               <span [ngClass]="{
-                                 'text-amber-600 bg-amber-50': order.status === 'pending',
-                                 'text-green-600 bg-green-50': order.status === 'completed',
-                                 'text-red-600 bg-red-50': order.status === 'cancelled'
-                               }" class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md w-fit">
-                                 {{ order.status }}
-                               </span>
+                                <span [ngClass]="{
+                                  'text-amber-600 bg-amber-50': order.status === 'pending',
+                                  'text-green-600 bg-green-50': order.status === 'completed',
+                                  'text-red-600 bg-red-50': order.status === 'cancelled'
+                                }" class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md w-fit">
+                                  {{ order.status === 'pending' ? 'Initiated' : (order.status === 'completed' ? 'Delivered' : 'Cancelled') }}
+                                </span>
                             </div>
                             <lucide-icon [img]="ChevronRight" class="h-5 w-5 text-muted-foreground/30 group-hover:text-primary transition-colors"></lucide-icon>
                          </div>
@@ -129,17 +163,17 @@ import { FormsModule } from '@angular/forms';
 
            <!-- Details Sidebar -->
            <div class="lg:col-span-4">
-              @if(selectedOrder) {
+              @if(selectedOrderDetails(); as order) {
                 <div class="sticky top-24 space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                    <div hlmCard class="border-none shadow-md rounded-2xl bg-background overflow-hidden border-2 border-primary/5">
                       <div hlmCardHeader class="pb-3 border-b border-border/40">
                          <div class="flex items-center justify-between mb-2">
                            <h3 hlmCardTitle class="text-lg font-black tracking-tight">Order Details</h3>
-                           <button (click)="selectedOrder = null" class="text-muted-foreground hover:text-primary transition-colors">
+                           <button (click)="selectedOrderId.set(null)" class="text-muted-foreground hover:text-primary transition-colors">
                               <lucide-icon [img]="XCircle" class="h-5 w-5"></lucide-icon>
                            </button>
                          </div>
-                         <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">PLACED AT {{ selectedOrder.createdAt | date:'medium' }}</p>
+                         <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">PLACED AT {{ order.createdAt | date:'medium' }}</p>
                       </div>
                       <div hlmCardContent class="p-0">
                          <!-- Customer Info -->
@@ -148,7 +182,7 @@ import { FormsModule } from '@angular/forms';
                                <lucide-icon [img]="Phone" class="h-4 w-4 text-muted-foreground mt-0.5"></lucide-icon>
                                <div>
                                   <p class="text-[10px] font-bold text-muted-foreground uppercase mb-0.5">Contact</p>
-                                  <p class="text-sm font-black">{{ selectedOrder.customerPhone }}</p>
+                                  <p class="text-sm font-black">{{ order.customerPhone }}</p>
                                </div>
                             </div>
                          </div>
@@ -156,19 +190,19 @@ import { FormsModule } from '@angular/forms';
                          <!-- Items List -->
                          <div class="p-5 space-y-3">
                             <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Order Items</p>
-                            @for(item of selectedOrder.items; track item.productId) {
+                            @for(item of order.items; track item.product.id) {
                                <div class="flex items-center gap-3 bg-muted/20 p-2 rounded-xl border border-border/10">
                                   <img [src]="item.product.image" class="h-8 w-8 rounded-lg object-cover shadow-sm" />
                                   <div class="flex-1 min-w-0">
                                      <p class="text-xs font-black truncate leading-none mb-0.5">{{ item.product.title }}</p>
-                                     <p class="text-[10px] text-muted-foreground font-medium">Qty: {{ item.quantity }} × {{ item.product.price | currency }}</p>
+                                     <p class="text-[10px] text-muted-foreground font-medium">Qty: {{ item.quantity }} × {{ item.product.price | currency:'INR':'symbol':'1.2-2' }}</p>
                                   </div>
-                                  <p class="text-xs font-black text-foreground">{{ (item.product.price * item.quantity) | currency }}</p>
+                                  <p class="text-xs font-black text-foreground">{{ (item.product.price * item.quantity) | currency:'INR':'symbol':'1.2-2' }}</p>
                                </div>
                             }
                             <div class="pt-3 mt-3 border-t border-dashed border-border flex items-center justify-between">
                                <p class="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Amount</p>
-                               <p class="text-xl font-black text-primary tracking-tighter">{{ selectedOrder.total | currency }}</p>
+                               <p class="text-xl font-black text-primary tracking-tighter">{{ order.total | currency:'INR':'symbol':'1.2-2' }}</p>
                             </div>
                          </div>
 
@@ -177,19 +211,19 @@ import { FormsModule } from '@angular/forms';
                             <p class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Management Actions</p>
                             <div class="grid grid-cols-2 gap-2">
                                <button (click)="updateStatus('completed')" 
-                                       [disabled]="selectedOrder.status === 'completed' || orderStore.loading()"
+                                       [disabled]="order.status === 'completed' || order.status === 'cancelled' || orderStore.loading()"
                                        hlmBtn class="bg-green-600 hover:bg-green-700 text-white rounded-xl h-12 font-black text-[10px] uppercase tracking-widest shadow-sm shadow-green-200 border-none transition-all active:scale-95">
                                   <lucide-icon [img]="CheckCircle2" class="h-3.5 w-3.5 mr-2"></lucide-icon>
                                   Deliver
                                </button>
                                <button (click)="updateStatus('cancelled')" 
-                                       [disabled]="selectedOrder.status === 'cancelled' || orderStore.loading()"
+                                       [disabled]="order.status === 'cancelled' || order.status === 'completed' || orderStore.loading()"
                                        hlmBtn variant="outline" class="border-red-200 text-red-600 hover:bg-red-50 rounded-xl h-12 font-black text-[10px] uppercase tracking-widest transition-all active:scale-95">
                                   <lucide-icon [img]="XCircle" class="h-3.5 w-3.5 mr-2"></lucide-icon>
                                   Cancel
                                </button>
                             </div>
-                            @if(selectedOrder.status === 'completed') {
+                            @if(order.status === 'completed') {
                                <div class="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-xl border border-green-100 animate-in zoom-in duration-300">
                                   <lucide-icon [img]="CheckCircle2" class="h-4 w-4"></lucide-icon>
                                   <p class="text-[10px] font-black uppercase tracking-tight">Order Fulfilled Successfully</p>
@@ -215,44 +249,71 @@ import { FormsModule } from '@angular/forms';
   `
 })
 export class AdminOrdersComponent implements OnInit {
-    orderStore = inject(OrderStore);
-    searchQuery = '';
-    selectedStatus = 'All';
-    selectedOrder: any = null;
-    statusFilters = ['All', 'Pending', 'Completed', 'Cancelled'];
+   orderStore = inject(OrderStore);
+   searchQuery = signal('');
+   selectedStatus = signal('All');
+   selectedOrderId = signal<string | null>(null);
+   selectedOrderDetails = computed(() => this.orderStore.orders().find(o => o.id === this.selectedOrderId()) || null);
+   statusFilters = ['All', 'Pending', 'Completed', 'Cancelled'];
+   sortBy = signal<'createdAt' | 'total' | 'status'>('createdAt');
+   sortOrder = signal<'asc' | 'desc'>('desc');
+   isSortDropdownOpen = signal(false);
 
-    filteredOrders = () => {
-        return this.orderStore.orders().filter(order => {
-            const matchesSearch = order.customerPhone.includes(this.searchQuery) || order.id.toLowerCase().includes(this.searchQuery.toLowerCase());
-            const matchesStatus = this.selectedStatus === 'All' || order.status.toLowerCase() === this.selectedStatus.toLowerCase();
-            return matchesSearch && matchesStatus;
-        });
-    };
+   toggleSortOrder() {
+      this.sortOrder.update((s: any) => s === 'asc' ? 'desc' : 'asc');
+   }
 
-    ngOnInit() {
-        this.orderStore.loadAdminOrders();
-    }
+   filteredOrders = computed(() => {
+      let orders = this.orderStore.orders().filter(order => {
+         const matchesSearch = order.customerPhone.includes(this.searchQuery()) || order.id.toLowerCase().includes(this.searchQuery().toLowerCase());
+         const matchesStatus = this.selectedStatus() === 'All' || order.status.toLowerCase() === this.selectedStatus().toLowerCase();
+         return matchesSearch && matchesStatus;
+      });
 
-    updateStatus(status: 'pending' | 'completed' | 'cancelled') {
-        if (!this.selectedOrder) return;
-        this.orderStore.updateStatus({ orderId: this.selectedOrder.id, status });
-        // Keep local selection updated
-        setTimeout(() => {
-            const updated = this.orderStore.orders().find(o => o.id === this.selectedOrder.id);
-            if (updated) this.selectedOrder = updated;
-        }, 500);
-    }
+      // Apply Sorting
+      const sortField = this.sortBy();
+      const direction = this.sortOrder() === 'asc' ? 1 : -1;
 
-    readonly ShoppingBag = ShoppingBag;
-    readonly Clock = Clock;
-    readonly CheckCircle2 = CheckCircle2;
-    readonly XCircle = XCircle;
-    readonly Search = Search;
-    readonly ChevronRight = ChevronRight;
-    readonly Package = Package;
-    readonly User = User;
-    readonly Phone = Phone;
-    readonly MapPin = MapPin;
-    readonly ExternalLink = ExternalLink;
-    readonly Filter = Filter;
+      return [...orders].sort((a: any, b: any) => {
+         let valA = a[sortField];
+         let valB = b[sortField];
+
+         // Handle special cases
+         if (sortField === 'createdAt') {
+            valA = new Date(valA).getTime();
+            valB = new Date(valB).getTime();
+         }
+
+         if (valA < valB) return -1 * direction;
+         if (valA > valB) return 1 * direction;
+         return 0;
+      });
+   });
+
+   ngOnInit() {
+      this.orderStore.loadAdminOrders();
+   }
+
+   updateStatus(status: 'pending' | 'completed' | 'cancelled') {
+      const orderId = this.selectedOrderId();
+      if (!orderId) return;
+      this.orderStore.updateStatus({ orderId, status });
+   }
+
+   readonly ShoppingBag = ShoppingBag;
+   readonly Clock = Clock;
+   readonly CheckCircle2 = CheckCircle2;
+   readonly XCircle = XCircle;
+   readonly Search = Search;
+   readonly ChevronRight = ChevronRight;
+   readonly Package = Package;
+   readonly User = User;
+   readonly Phone = Phone;
+   readonly MapPin = MapPin;
+   readonly ExternalLink = ExternalLink;
+   readonly Filter = Filter;
+   readonly SortAsc = SortAsc;
+   readonly ArrowUpWideNarrow = ArrowUpWideNarrow;
+   readonly ArrowDownWideNarrow = ArrowDownWideNarrow;
+   readonly ChevronDown = ChevronRight; // We'll use ChevronRight rotated if possible or just ChevronRight
 }
