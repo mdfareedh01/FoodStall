@@ -15,10 +15,10 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, HlmButtonDirective, HlmBadgeDirective, LucideAngularModule, RouterLink],
   template: `
     <div class="min-h-screen bg-background">
-      <div class="container py-4 sm:py-8 px-4 sm:px-8">
-        <a routerLink="/" class="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-6 transition-colors">
-          <lucide-icon [img]="ArrowLeft" class="h-4 w-4"></lucide-icon>
-          Back to Products
+      <div class="container py-4 sm:py-8 px-4 sm:px-8 max-w-5xl">
+        <a routerLink="/" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-primary mb-6 transition-all group">
+          <lucide-icon [img]="ArrowLeft" class="h-3 w-3 transition-transform group-hover:-translate-x-1"></lucide-icon>
+          Back to Menu
         </a>
 
         @if (productStore.loading()) {
@@ -27,9 +27,9 @@ import { RouterLink } from '@angular/router';
              Loading details...
           </div>
         } @else if (productStore.selectedProduct(); as product) {
-          <div class="grid md:grid-cols-2 gap-6 lg:gap-12">
+          <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
             <!-- Image Section -->
-            <div class="relative aspect-square sm:aspect-[4/3] md:aspect-auto md:h-[600px] overflow-hidden rounded-2xl border bg-muted shadow-sm">
+            <div class="relative aspect-square sm:aspect-[4/3] md:aspect-square md:h-[500px] overflow-hidden rounded-[2.5rem] border-none bg-muted/30 shadow-2xl shadow-primary/5 group">
               <img [src]="product.image" [alt]="product.title" class="object-cover w-full h-full" />
               <div class="absolute top-4 right-4 rounded-full bg-background/90 backdrop-blur p-2 shadow-md md:hidden">
                 @if (product.isVeg) {
@@ -41,50 +41,54 @@ import { RouterLink } from '@angular/router';
             </div>
 
             <!-- Content Section -->
-            <div class="flex flex-col space-y-6 sm:py-4">
-              <div class="space-y-3">
-                <div class="flex items-center justify-between">
+            <div class="flex flex-col space-y-8 sm:py-2">
+              <div class="space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4">
                   <div class="flex items-center gap-2">
-                    <span hlmBadge [variant]="product.isVeg ? 'secondary' : 'destructive'" class="uppercase text-[10px] tracking-wider px-3 py-1">
+                    <span hlmBadge [variant]="product.isVeg ? 'secondary' : 'destructive'" class="uppercase text-[9px] font-black tracking-[0.2em] px-3 py-1 bg-opacity-10 border-none">
                         {{ product.isVeg ? 'Vegetarian' : 'Non-Veg' }}
                     </span>
                     @if(product.isSpecial) {
-                       <span hlmBadge class="bg-amber-100 text-amber-700 border-amber-200 uppercase text-[10px] tracking-wider px-3 py-1 flex items-center gap-1">
+                       <span hlmBadge class="bg-amber-100/50 text-amber-700 border-none uppercase text-[9px] font-black tracking-[0.2em] px-3 py-1 flex items-center gap-1.5">
                           <lucide-icon [img]="Zap" class="h-3 w-3 fill-current"></lucide-icon>
-                          Today's Special
+                          Special
                        </span>
                     }
                   </div>
                   @if(product.origin && product.origin !== 'Standard') {
-                     <div class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted/50 px-3 py-1 rounded-full border border-border/30">
+                     <div class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 bg-muted/30 px-3 py-1 rounded-full border border-border/10">
                         @if(product.origin === 'Farm') {
                            <lucide-icon [img]="Sprout" class="h-3 w-3 text-green-600"></lucide-icon>
-                           Sourced from local farm
+                           Local Farm
                         } @else {
                            <lucide-icon [img]="HomeIcon" class="h-3 w-3 text-purple-600"></lucide-icon>
-                           Handmade with love
+                           Handmade
                         }
                      </div>
                   }
-                  <span class="text-2xl font-bold text-primary">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
                 </div>
                 
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">{{ product.title }}</h1>
-                <p class="text-muted-foreground leading-relaxed text-lg sm:text-xl">
-                  {{ product.description }}
-                </p>
+                <div class="space-y-2">
+                   <div class="flex items-center justify-between">
+                      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground lowercase italic">/ {{ product.title }}</h1>
+                      <span class="text-2xl font-black text-primary tracking-tighter">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
+                   </div>
+                   <p class="text-muted-foreground/80 leading-relaxed text-sm sm:text-base font-medium max-w-xl">
+                     {{ product.description }}
+                   </p>
+                </div>
               </div>
 
-              <div class="space-y-4 pt-6 border-t pb-20 sm:pb-0">
-                <h3 class="font-bold text-xl flex items-center gap-2">
-                  <div class="h-6 w-1 bg-primary rounded-full"></div>
-                  Ingredients
+              <div class="space-y-6 pt-8 border-t border-dashed border-border/40 pb-20 sm:pb-0">
+                <h3 class="font-black text-sm uppercase tracking-[0.3em] flex items-center gap-3 text-foreground/40 italic">
+                   Ingredients
+                   <div class="h-px flex-1 bg-border/20"></div>
                 </h3>
-                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   @for (ing of product.ingredients; track ing) {
-                    <li class="flex items-center gap-3 text-base text-muted-foreground bg-muted/30 p-3 rounded-xl border border-transparent hover:border-border transition-colors">
-                      <div class="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-                        <lucide-icon [img]="Check" class="h-4 w-4 text-green-600"></lucide-icon>
+                    <li class="flex items-center gap-3 text-xs font-bold text-muted-foreground/70 bg-muted/20 p-3 rounded-2xl border border-transparent hover:border-primary/10 transition-all hover:bg-background shadow-sm hover:shadow-md group">
+                      <div class="h-5 w-5 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0 group-hover:bg-green-500 group-hover:text-white transition-colors">
+                        <lucide-icon [img]="Check" class="h-3 w-3"></lucide-icon>
                       </div>
                       {{ ing }}
                     </li>
@@ -93,9 +97,9 @@ import { RouterLink } from '@angular/router';
               </div>
 
               <!-- Desktop Button -->
-              <div class="hidden sm:block pt-6">
-                <button hlmBtn size="lg" class="w-full h-14 text-lg rounded-xl shadow-lg hover:shadow-primary/20 transition-all font-bold" (click)="addToCart(product)">
-                  Add to Cart - {{ product.price | currency:'INR':'symbol':'1.2-2' }}
+              <div class="hidden sm:block pt-4">
+                <button hlmBtn size="lg" class="w-full h-14 text-sm uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/10 hover:shadow-primary/20 transition-all font-black" (click)="addToCart(product)">
+                  Add to Cart — {{ product.price | currency:'INR':'symbol':'1.2-2' }}
                 </button>
               </div>
             </div>
