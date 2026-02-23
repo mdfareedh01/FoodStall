@@ -26,10 +26,10 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // Middleware
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allowing all for now to facilitate deployment as per Hono logic
-        callback(null, true);
-    },
+    origin: [
+        'https://a-to-z-foods.vercel.app',
+        'http://localhost:4200'
+    ],
     credentials: true
 }));
 app.use(express.json());
