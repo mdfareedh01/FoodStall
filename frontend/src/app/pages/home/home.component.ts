@@ -8,7 +8,7 @@ import { ProductStore } from '../../store/product.store';
 import { HlmCardDirective, HlmCardHeaderDirective, HlmCardTitleDirective, HlmCardContentDirective } from '../../ui/ui-card/ui-card.directive';
 import { HlmButtonDirective } from '../../ui/ui-button/ui-button.directive';
 import { HlmBadgeDirective } from '../../ui/ui-badge/ui-badge.directive';
-import { LucideAngularModule, Filter, X, ChevronDown, Zap, Sprout, Home } from 'lucide-angular';
+import { LucideAngularModule, Filter, X, ChevronDown, Zap, Sprout, Home, Utensils } from 'lucide-angular';
 import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
 
 @Component({
@@ -140,11 +140,13 @@ import { SkeletonComponent } from '../../ui/ui-skeleton/ui-skeleton.component';
               }
 
               <!-- Explore Our Full Menu Section (Always Visible) -->
-              <section class="space-y-6 pt-12 border-t">
-                 <div class="flex items-center justify-between">
-                    <h3 class="text-2xl font-black tracking-tight text-foreground/80 lowercase">/ explore our full menu</h3>
-                    <div class="h-px flex-1 bg-border/40 mx-6 hidden sm:block"></div>
-                 </div>
+              <section class="space-y-12 pt-12 border-t border-dashed border-border/40">
+                <div class="flex items-center gap-3 mb-2">
+                   <div class="p-2 bg-slate-100 rounded-xl">
+                    <lucide-icon [img]="Utensils" class="h-6 w-6 text-slate-600"></lucide-icon>
+                  </div>
+                  <h3 class="text-2xl font-black tracking-tight underline cursor-default decoration-slate-400 decoration-4 underline-offset-8 lowercase italic">explore our full menu</h3>
+                </div>
                  <app-product-grid 
                   [products]="filteredProducts()" 
                   (addToCart)="onAddToCart($event)"
@@ -239,4 +241,5 @@ export class HomeComponent {
   readonly Zap = Zap;
   readonly Sprout = Sprout;
   readonly HomeIcon = Home;
+  readonly Utensils = Utensils;
 }
