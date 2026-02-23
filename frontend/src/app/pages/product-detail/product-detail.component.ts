@@ -47,19 +47,19 @@ import { RouterLink } from '@angular/router';
               <div class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-4">
                   <div class="flex items-center gap-2">
-                    <span hlmBadge class="uppercase text-[8px] font-black tracking-[0.2em] px-3 py-1.5 border-none shadow-sm"
-                          [ngClass]="product.isVeg ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    <span hlmBadge class="uppercase text-[8px] font-black tracking-[0.2em] px-3 py-1.5 border-none shadow-sm select-none pointer-events-none"
+                          [ngClass]="product.isVeg ? 'bg-green-100/80 text-green-700' : 'bg-red-100/80 text-red-700'">
                         {{ product.isVeg ? 'Vegetarian' : 'Non-Veg' }}
                     </span>
                     @if(product.isSpecial) {
-                       <span hlmBadge class="bg-amber-100 text-amber-700 border-none uppercase text-[8px] font-black tracking-[0.2em] px-3 py-1.5 flex items-center gap-1.5 shadow-sm">
+                       <span hlmBadge class="bg-amber-100 text-amber-700 border-none uppercase text-[8px] font-black tracking-[0.2em] px-3 py-1.5 flex items-center gap-1.5 shadow-sm select-none pointer-events-none">
                           <lucide-icon [img]="Zap" class="h-3 w-3 fill-current"></lucide-icon>
                           Special
                        </span>
                     }
                   </div>
                   @if(product.origin && product.origin !== 'Standard') {
-                     <div class="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 bg-white shadow-sm px-3 py-1.5 rounded-full border border-border/10">
+                     <div class="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 bg-white shadow-sm px-3 py-1.5 rounded-full border border-border/10 select-none pointer-events-none">
                         @if(product.origin === 'Farm') {
                            <lucide-icon [img]="Sprout" class="h-3 w-3 text-green-600"></lucide-icon>
                            Local Farm
