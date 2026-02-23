@@ -15,11 +15,13 @@ import { RouterLink } from '@angular/router';
   imports: [CommonModule, HlmButtonDirective, HlmBadgeDirective, LucideAngularModule, RouterLink],
   template: `
     <div class="min-h-screen bg-background">
-      <div class="container py-4 sm:py-8 px-4 sm:px-8 max-w-5xl">
-        <a routerLink="/" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-primary mb-6 transition-all group">
-          <lucide-icon [img]="ArrowLeft" class="h-3 w-3 transition-transform group-hover:-translate-x-1"></lucide-icon>
-          Back to Menu
-        </a>
+      <div class="container py-4 sm:py-12 px-4 sm:px-8 max-w-5xl">
+        <div class="mb-8">
+          <a routerLink="/" class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 hover:text-primary transition-all group">
+            <lucide-icon [img]="ArrowLeft" class="h-3 w-3 transition-transform group-hover:-translate-x-1"></lucide-icon>
+            Back to Menu
+          </a>
+        </div>
 
         @if (productStore.loading()) {
           <div class="flex flex-col items-center justify-center py-20 text-muted-foreground">
@@ -27,9 +29,9 @@ import { RouterLink } from '@angular/router';
              Loading details...
           </div>
         } @else if (productStore.selectedProduct(); as product) {
-          <div class="grid md:grid-cols-2 gap-8 lg:gap-16 items-start">
+          <div class="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
             <!-- Image Section -->
-            <div class="relative aspect-square sm:aspect-[4/3] md:aspect-square md:h-[500px] overflow-hidden rounded-[2.5rem] border-none bg-muted/30 shadow-2xl shadow-primary/5 group">
+            <div class="relative aspect-square sm:aspect-[4/3] md:aspect-square overflow-hidden rounded-[2.5rem] border-none bg-muted/30 shadow-2xl shadow-primary/5 group">
               <img [src]="product.image" [alt]="product.title" class="object-cover w-full h-full" />
               <div class="absolute top-4 right-4 rounded-full bg-background/90 backdrop-blur p-2 shadow-md md:hidden">
                 @if (product.isVeg) {
@@ -44,24 +46,25 @@ import { RouterLink } from '@angular/router';
             <div class="flex flex-col space-y-8 sm:py-2">
               <div class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                   <div class="flex items-center gap-2">
-                    <span hlmBadge [variant]="product.isVeg ? 'secondary' : 'destructive'" class="uppercase text-[8px] font-black tracking-[0.2em] px-2.5 py-1 bg-opacity-10 border-none">
+                  <div class="flex items-center gap-2">
+                    <span hlmBadge class="uppercase text-[8px] font-black tracking-[0.2em] px-3 py-1.5 border-none shadow-sm"
+                          [ngClass]="product.isVeg ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
                         {{ product.isVeg ? 'Vegetarian' : 'Non-Veg' }}
                     </span>
                     @if(product.isSpecial) {
-                       <span hlmBadge class="bg-amber-100/50 text-amber-700 border-none uppercase text-[8px] font-black tracking-[0.2em] px-2.5 py-1 flex items-center gap-1">
-                          <lucide-icon [img]="Zap" class="h-2.5 w-2.5 fill-current"></lucide-icon>
+                       <span hlmBadge class="bg-amber-100 text-amber-700 border-none uppercase text-[8px] font-black tracking-[0.2em] px-3 py-1.5 flex items-center gap-1.5 shadow-sm">
+                          <lucide-icon [img]="Zap" class="h-3 w-3 fill-current"></lucide-icon>
                           Special
                        </span>
                     }
                   </div>
                   @if(product.origin && product.origin !== 'Standard') {
-                     <div class="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 bg-muted/30 px-2.5 py-1 rounded-full border border-border/10">
+                     <div class="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 bg-white shadow-sm px-3 py-1.5 rounded-full border border-border/10">
                         @if(product.origin === 'Farm') {
-                           <lucide-icon [img]="Sprout" class="h-2.5 w-2.5 text-green-600"></lucide-icon>
+                           <lucide-icon [img]="Sprout" class="h-3 w-3 text-green-600"></lucide-icon>
                            Local Farm
                         } @else {
-                           <lucide-icon [img]="HomeIcon" class="h-2.5 w-2.5 text-purple-600"></lucide-icon>
+                           <lucide-icon [img]="HomeIcon" class="h-3 w-3 text-purple-600"></lucide-icon>
                            Handmade
                         }
                      </div>
@@ -69,11 +72,12 @@ import { RouterLink } from '@angular/router';
                 </div>
                 
                 <div class="space-y-1">
-                   <div class="flex items-center justify-between">
-                      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground lowercase italic">/ {{ product.title }}</h1>
+                   <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+                      <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground lowercase italic leading-tight"> {{ product.title }}</h1>
+                      <div class="h-px flex-1 bg-border/10 mx-4 hidden sm:block"></div>
                       <span class="text-xl font-black text-primary tracking-tighter">{{ product.price | currency:'INR':'symbol':'1.2-2' }}</span>
                    </div>
-                   <p class="text-muted-foreground/70 leading-relaxed text-xs sm:text-sm font-medium max-w-lg">
+                   <p class="text-muted-foreground/60 leading-relaxed text-xs sm:text-sm font-medium max-w-lg">
                      {{ product.description }}
                    </p>
                 </div>
